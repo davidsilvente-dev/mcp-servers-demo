@@ -1,8 +1,10 @@
-import json, urllib.request
+import json
+import urllib.request
 from datetime import date
 
 U = "https://www.boe.es/datosabiertos/api/boe/sumario/{}"
-T = [{"name": "sumario_boe", "description": "Disposiciones del sumario del BOE de una fecha (AAAAMMDD; hoy por defecto).",
+T = [{"name": "sumario_boe",
+      "description": "Disposiciones del sumario del BOE de una fecha (AAAAMMDD; hoy por defecto).",
       "inputSchema": {"type": "object", "properties": {"fecha": {"type": "string"}}}}]
 
 
@@ -22,7 +24,8 @@ def sumario(fecha):
             for dep in L(s.get("departamento")):
                 for e in L(dep.get("epigrafe")):
                     for i in L(e.get("item")):
-                        out.append({"id": i.get("identificador"), "titulo": i.get("titulo"), "departamento": dep.get("nombre")})
+                        out.append({"id": i.get("identificador"), "titulo": i.get("titulo"),
+                                    "departamento": dep.get("nombre")})
     return {"fecha": fecha, "total": len(out), "items": out[:50]}
 
 
@@ -30,7 +33,9 @@ def rpc(m):
     k, p, i = m.get("method"), m.get("params") or {}, m.get("id")
     if i is None:
         return None
-    ok = lambda r: {"jsonrpc": "2.0", "id": i, "result": r}
+    def ok(r):
+        return {"jsonrpc": "2.0", "id": i, "result": r}
+
     if k == "initialize":
         return ok({"protocolVersion": p.get("protocolVersion", "2025-03-26"), "capabilities": {"tools": {}},
                    "serverInfo": {"name": "boe-demo", "version": "0.1.0"}})
