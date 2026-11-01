@@ -1,0 +1,83 @@
+{
+ "data": {
+  "sumario": {
+   "metadatos": {
+    "publicacion": "BOE",
+    "fecha_publicacion": "20261030"
+   },
+   "diario": [
+    {
+     "numero": "270",
+     "sumario_diario": {
+      "identificador": "BOE-S-2026-270",
+      "url_pdf": {
+       "szBytes": "408244",
+       "szKBytes": "399",
+       "texto": "https://www.boe.es/boe/dias/2026/10/30/pdfs/BOE-S-2026-270.pdf"
+      }
+     },
+     "seccion": [
+      {
+       "codigo": "1",
+       "nombre": "I. Disposiciones generales",
+       "departamento": [
+        {
+         "codigo": "9591",
+         "nombre": "MINISTERIO DE INDUSTRIA Y TURISMO",
+         "epigrafe": [
+          {
+           "nombre": "Ayudas",
+           "item": [
+            {
+             "identificador": "BOE-A-2026-22716",
+             "titulo": "Real Decreto 922/2026, de 28 de octubre, por el que se establecen las normas reguladoras de la concesión directa de anticipos reembolsables en la forma de préstamos a la empresa Navantia, SA, SME, para el desarrollo tecnológico e industrial de varios programas especiales de modernización de sistemas navales y de desarrollo de capacidades navales de interés para la Defensa.",
+             "url_pdf": {
+              "szBytes": "315284",
+              "szKBytes": "308",
+              "pagina_inicial": "145300",
+              "pagina_final": "145316",
+              "texto": "https://www.boe.es/boe/dias/2026/10/30/pdfs/BOE-A-2026-22716.pdf"
+             },
+             "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-22716"
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "codigo": "2A",
+       "nombre": "II. Autoridades y personal. - A. Nombramientos, situaciones e incidencias",
+       "departamento": [
+        {
+         "codigo": "9585",
+         "nombre": "MINISTERIO DE LA PRESIDENCIA, JUSTICIA Y RELACIONES CON LAS CORTES",
+         "epigrafe": [
+          {
+           "nombre": "Situaciones",
+           "item": [
+            {
+             "identificador": "BOE-A-2026-22721",
+             "titulo": "Resolución de 21 de octubre de 2026, de la Dirección General para la Eficiencia del Servicio Público de Justicia, por la que se declara la jubilación de don Luis Fernando Rey Huidobro, Fiscal con destino en la Sección Penal de la Fiscalía del Tribunal Supremo.",
+             "url_pdf": {
+              "szBytes": "192244",
+              "szKBytes": "188",
+              "pagina_inicial": "145387",
+              "pagina_final": "145387",
+              "texto": "https://www.boe.es/boe/dias/2026/10/30/pdfs/BOE-A-2026-22721.pdf"
+             },
+             "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-22721"
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ }
+}
