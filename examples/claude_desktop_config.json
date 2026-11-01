@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "boe-demo": {
+      "command": "python",
+      "args": ["-m", "mcp_boe.server"],
+      "env": { "PYTHONPATH": "RUTA/A/mcp-servers-demo/src" }
+    }
+  }
+}
