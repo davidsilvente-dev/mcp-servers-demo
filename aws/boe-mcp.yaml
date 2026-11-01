@@ -1,0 +1,118 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Demo 2 - servidor MCP (HTTP sin estado) del sumario del BOE en Lambda. Borrador.
+
+# Mismas reglas de coste y seguridad que boe-demo: 128 MB, URL con auth IAM, logs 7 dias.
+# El codigo fuente legible esta en mcp_lambda.py (esta plantilla lo lleva incrustado, <4 KB).
+# Retirar: aws cloudformation delete-stack --stack-name boe-mcp
+
+Resources:
+  Logs:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /aws/lambda/boe-mcp-demo
+      RetentionInDays: 7
+
+  Rol:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal: { Service: lambda.amazonaws.com }
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: logs-minimos
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: [logs:CreateLogStream, logs:PutLogEvents]
+                Resource: !Sub "${Logs.Arn}:*"
+
+  Funcion:
+    Type: AWS::Lambda::Function
+    DependsOn: Logs
+    Properties:
+      FunctionName: boe-mcp-demo
+      Runtime: python3.12
+      Handler: index.handler
+      Role: !GetAtt Rol.Arn
+      MemorySize: 128
+      Timeout: 15
+      Code:
+        ZipFile: |
+          import json, urllib.request
+          from datetime import date
+
+          U = "https://www.boe.es/datosabiertos/api/boe/sumario/{}"
+          T = [{"name": "sumario_boe", "description": "Disposiciones del sumario del BOE de una fecha (AAAAMMDD; hoy por defecto).",
+                "inputSchema": {"type": "object", "properties": {"fecha": {"type": "string"}}}}]
+
+
+          def L(x):
+              return [x] if isinstance(x, dict) else (x or [])
+
+
+          def sumario(fecha):
+              fecha = fecha or date.today().strftime("%Y%m%d")
+              if not (fecha.isdigit() and len(fecha) == 8):
+                  raise ValueError("fecha debe ser AAAAMMDD")
+              r = urllib.request.Request(U.format(fecha), headers={"Accept": "application/json"})
+              d = json.load(urllib.request.urlopen(r, timeout=10))
+              out = []
+              for di in d["data"]["sumario"]["diario"]:
+                  for s in L(di.get("seccion")):
+                      for dep in L(s.get("departamento")):
+                          for e in L(dep.get("epigrafe")):
+                              for i in L(e.get("item")):
+                                  out.append({"id": i.get("identificador"), "titulo": i.get("titulo"), "departamento": dep.get("nombre")})
+              return {"fecha": fecha, "total": len(out), "items": out[:50]}
+
+
+          def rpc(m):
+              k, p, i = m.get("method"), m.get("params") or {}, m.get("id")
+              if i is None:
+                  return None
+              ok = lambda r: {"jsonrpc": "2.0", "id": i, "result": r}
+              if k == "initialize":
+                  return ok({"protocolVersion": p.get("protocolVersion", "2025-03-26"), "capabilities": {"tools": {}},
+                             "serverInfo": {"name": "boe-demo", "version": "0.1.0"}})
+              if k == "ping":
+                  return ok({})
+              if k == "tools/list":
+                  return ok({"tools": T})
+              if k == "tools/call":
+                  if p.get("name") != "sumario_boe":
+                      return {"jsonrpc": "2.0", "id": i, "error": {"code": -32602, "message": "herramienta desconocida"}}
+                  try:
+                      t = json.dumps(sumario((p.get("arguments") or {}).get("fecha")), ensure_ascii=False)
+                      return ok({"content": [{"type": "text", "text": t}]})
+                  except Exception as e:
+                      return ok({"content": [{"type": "text", "text": type(e).__name__ + ": " + str(e)}], "isError": True})
+              return {"jsonrpc": "2.0", "id": i, "error": {"code": -32601, "message": "metodo no soportado"}}
+
+
+          def handler(event, context):
+              if (event.get("requestContext", {}).get("http", {}).get("method")) != "POST":
+                  return {"statusCode": 405, "body": "usar POST"}
+              try:
+                  m = json.loads(event.get("body") or "{}")
+              except ValueError:
+                  return {"statusCode": 400, "body": "JSON no valido"}
+              rs = [x for x in (rpc(q) for q in (m if isinstance(m, list) else [m])) if x]
+              if not rs:
+                  return {"statusCode": 202, "body": ""}
+              return {"statusCode": 200, "headers": {"Content-Type": "application/json"},
+                      "body": json.dumps(rs if isinstance(m, list) else rs[0], ensure_ascii=False)}
+
+  UrlFuncion:
+    Type: AWS::Lambda::Url
+    Properties:
+      TargetFunctionArn: !GetAtt Funcion.Arn
+      AuthType: AWS_IAM
+
+Outputs:
+  UrlMcp:
+    Description: Endpoint MCP (POST, JSON-RPC; requiere firma SigV4)
+    Value: !GetAtt UrlFuncion.FunctionUrl
